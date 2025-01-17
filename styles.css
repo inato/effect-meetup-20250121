@@ -1,0 +1,7 @@
+:root {
+  --slidev-code-padding: 24px;
+}
+
+.slidev-code {
+  background: var(--shiki-dark-bg, inherit) !important;
+}
