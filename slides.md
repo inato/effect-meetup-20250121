@@ -87,10 +87,7 @@ export default function Form() {
 
 <!-- add MultiSelect controlled field -->
 
-```tsx {5,6,13}
-import * as M from "@mantine/core";
-import * as RHF from "react-hook-form";
-
+```tsx {2,3,10}
 export default function Form() {
   const { handleSubmit, register, control } = RHF.useForm();
   const { field } = RHF.useController({ name: "favorite", control });
@@ -107,11 +104,9 @@ export default function Form() {
 }
 ```
 
-<!-- add validation using Yup -->
+<!-- create validation schema using Yup -->
 
-```tsx {3-14}
-import * as M from "@mantine/core";
-import * as RHF from "react-hook-form";
+```tsx {1-12}
 import * as yup from "yup";
 
 const schema = yup
@@ -141,9 +136,9 @@ export default function Form() {
 }
 ```
 
-```tsx {3-9}
-import * as M from "@mantine/core";
-import * as RHF from "react-hook-form";
+<!-- use schema via resolver props -->
+
+```tsx {1-7}
 import { yupResolver } from "@hookform/resolvers/yup";
 import schema from './schema';
 
@@ -165,12 +160,9 @@ export default function Form() {
 }
 ```
 
-```tsx {10,14-17}
-import * as M from "@mantine/core";
-import * as RHF from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import schema from './schema';
+<!-- plug errors -->
 
+```tsx {2,9-12}
 export default function Form() {
   const { handleSubmit, register, control, formState: { errors } } = RHF.useForm({
     resolver: yupResolver(schema),
@@ -189,11 +181,9 @@ export default function Form() {
 }
 ```
 
-```tsx {5,8,10,15,20}{lines:true}
-import * as M from "@mantine/core";
-import * as RHF from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import schema from './schema';
+<!-- interaction with API -->
+
+```tsx {1,4,6,11,16}
 import * as API from "./api";
 
 export default function Form() {
@@ -211,6 +201,175 @@ export default function Form() {
       <M.MultiSelect data={["React", "Angular", "Vue", "Svelte"]} {...field} error={errors?.favorite?.message} />
       <M.Button type="submit" loading={isSubmitting}>Submit</M.Button>
     </form>
+  );
+}
+```
+
+<!-- Add clear button -->
+
+```tsx {2,6,15}
+export default function Form() {
+  const { handleSubmit, register, control, formState: { errors, isSubmitting }, reset } = RHF.useForm({
+    resolver: yupResolver(schema),
+    defaultValues: API.getFromApi,
+  });
+  const resetValues = { firstName: "", lastName: "", email: "", favorite: [] };
+  const { field } = RHF.useController({ name: "favorite", control });
+
+  return (
+    <form onSubmit={handleSubmit(API.sendToApi)}>
+      <M.TextInput label="First name" {...register("firstName")} error={errors?.firstName?.message} />
+      <M.TextInput label="Last name" {...register("lastName")} error={errors?.lastName?.message} />
+      <M.TextInput label="Email" {...register("email")} error={errors?.email?.message} />
+      <M.MultiSelect data={["React", "Angular", "Vue", "Svelte"]} {...field} error={errors?.favorite?.message} />
+      <M.Button type="reset" onClick={() => reset(resetValues)}>Clear</M.Button>
+      <M.Button type="submit" loading={isSubmitting}>Submit</M.Button>
+    </form>
+  );
+}
+```
+
+<!-- Display alert on Angular -->
+
+```tsx {2,8,9,17}
+export default function Form() {
+  const { handleSubmit, register, control, formState: { errors, isSubmitting }, reset, watch } = RHF.useForm({
+    resolver: yupResolver(schema),
+    defaultValues: API.getFromApi,
+  });
+  const resetValues = { firstName: "", lastName: "", email: "", favorite: [] };
+  const { field } = RHF.useController({ name: "favorite", control });
+  const favoriteValue = watch("favorite");
+  const showMessage = favoriteValue?.includes("Angular");
+
+  return (
+    <form onSubmit={handleSubmit(API.sendToApi)}>
+      <M.TextInput label="First name" {...register("firstName")} error={errors?.firstName?.message} />
+      <M.TextInput label="Last name" {...register("lastName")} error={errors?.lastName?.message} />
+      <M.TextInput label="Email" {...register("email")} error={errors?.email?.message} />
+      <M.MultiSelect data={["React", "Angular", "Vue", "Svelte"]} {...field} error={errors?.favorite?.message} />
+      {showMessage && <M.Alert>Really? Still in 2025?</M.Alert>}
+      <M.Button type="reset" onClick={() => reset(resetValues)}>Clear</M.Button>
+      <M.Button type="submit" loading={isSubmitting}>Submit</M.Button>
+    </form>
+  );
+}
+```
+
+<!-- Split in multiple files / components -->
+
+```tsx {1,2,12,14,15,19}
+import UserInfo from "./UserInfo";
+import UserPreferences from "./UserPreferences";
+
+export default function Form() {
+  const formMethods = RHF.useForm({
+    resolver: yupResolver(schema),
+    defaultValues: API.getFromApi,
+  });
+  const { handleSubmit, formState: { isSubmitting }, reset } = formMethods;
+  const resetValues = { firstName: "", lastName: "", email: "", favorite: [] };
+  return (
+    <RHF.FormProvider {...formMethods}>
+      <form onSubmit={handleSubmit(API.sendToApi)}>
+        <UserInfo />
+        <UserPreferences />
+        <M.Button type="reset" onClick={() => reset(resetValues)}>Clear</M.Button>
+        <M.Button type="submit" loading={isSubmitting}>Submit</M.Button>
+      </form>
+    </RHF.FormProvider>
+  );
+}
+```
+
+```tsx
+export function UserInfo() {
+  const {
+    register,
+    formState: { errors },
+  } = RHF.useFormContext<Values>();
+  return (
+    <>
+      <M.TextInput label="First name" {...register("firstName")} error={errors?.firstName?.message} />
+      <M.TextInput label="Last name" {...register("lastName")} error={errors?.lastName?.message} />
+      <M.TextInput label="Email" {...register("email")} error={errors?.email?.message} />
+    </>
+  );
+}
+```
+
+```tsx
+function UserPreferences() {
+  const {
+    watch,
+    formState: { errors },
+  } = RHF.useFormContext<Values>();
+  const { field } = RHF.useController<Values>({ name: "favorite" });
+  field.value;
+  const favoriteValue = watch("favorite");
+  const showMessage = favoriteValue?.includes("Angular");
+
+  return (
+    <>
+      <M.MultiSelect data={["React", "Angular", "Vue", "Svelte"]} {...field} error={errors?.favorite?.message} />
+      {showMessage && <M.Alert>Really? Still in 2025?</M.Alert>}
+    </>
+  );
+}
+```
+
+```tsx
+// UserInfo.tsx
+export function UserInfo() {
+  const {
+    register,
+    formState: { errors },
+  } = RHF.useFormContext<Values>();
+  return (
+    <>
+      <M.TextInput label="First name" {...register("firstName")} error={errors?.firstName?.message} />
+      <M.TextInput label="Last name" {...register("lastName")} error={errors?.lastName?.message} />
+      <M.TextInput label="Email" {...register("email")} error={errors?.email?.message} />
+    </>
+  );
+}
+
+// UserPreferences.tsx
+function UserPreferences() {
+  const {
+    watch,
+    formState: { errors },
+  } = RHF.useFormContext<Values>();
+  const { field } = RHF.useController<Values>({ name: "favorite" });
+  field.value;
+  const favoriteValue = watch("favorite");
+  const showMessage = favoriteValue?.includes("Angular");
+
+  return (
+    <>
+      <M.MultiSelect data={["React", "Angular", "Vue", "Svelte"]} {...field} error={errors?.favorite?.message} />
+      {showMessage && <M.Alert>Really? Still in 2025?</M.Alert>}
+    </>
+  );
+}
+
+// App.tsx
+export default function Form() {
+  const formMethods = RHF.useForm({
+    resolver: yupResolver(schema),
+    defaultValues: API.getFromApi,
+  });
+  const { handleSubmit, formState: { isSubmitting }, reset } = formMethods;
+  const resetValues = { firstName: "", lastName: "", email: "", favorite: [] };
+  return (
+    <RHF.FormProvider {...formMethods}>
+      <form onSubmit={handleSubmit(API.sendToApi)}>
+        <UserInfo />
+        <UserPreferences />
+        <M.Button type="reset" onClick={() => reset(resetValues)}>Clear</M.Button>
+        <M.Button type="submit" loading={isSubmitting}>Submit</M.Button>
+      </form>
+    </RHF.FormProvider>
   );
 }
 ```

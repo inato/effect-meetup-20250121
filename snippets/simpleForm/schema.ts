@@ -1,6 +1,6 @@
 import * as yup from "yup";
 
-export default yup
+const schema = yup
   .object({
     firstName: yup.string().required(),
     lastName: yup.string(),
@@ -10,3 +10,7 @@ export default yup
     ),
   })
   .required();
+
+export default schema;
+
+export type Values = yup.InferType<typeof schema>;
