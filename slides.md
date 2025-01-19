@@ -25,3 +25,6 @@ src: ./pages/3.problems.md
 ---
 src: ./pages/4.better.md
 ---
+---
+src: ./pages/5.inatoform.md
+---
