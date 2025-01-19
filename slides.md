@@ -19,3 +19,6 @@ src: ./pages/1.intro.md
 ---
 src: ./pages/2.example.md
 ---
+---
+src: ./pages/3.problems.md
+---
