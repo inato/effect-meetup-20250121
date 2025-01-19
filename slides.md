@@ -65,27 +65,153 @@ And forms can be hard sometime...
 
 # A simple example
 
-```ts
-enum LogLevel {
-  ERROR,
-  WARN,
-  INFO,
-  DEBUG,
-}
+````md magic-move
 
-/**
- * This is equivalent to:
- * type LogLevelStrings = 'ERROR' | 'WARN' | 'INFO' | 'DEBUG';
- */
-type LogLevelStrings = keyof typeof LogLevel;
+```tsx {*}{maxHeight:'50px'}
+import * as M from "@mantine/core";
+import * as RHF from "react-hook-form";
 
-function printImportant(key: LogLevelStrings, message: string) {
-  const num = LogLevel[key];
-  if (num <= LogLevel.WARN) {
-    console.log("Log level key is:", key);
-    console.log("Log level value is:", num);
-    console.log("Log level message is:", message);
-  }
+export default function Form() {
+  const { handleSubmit, register } = RHF.useForm();
+
+  return (
+    <form onSubmit={handleSubmit((_) => console.log(_))}>
+      <M.TextInput label="First name" {...register("firstName")} />
+      <M.TextInput label="Last name" {...register("lastName")} />
+      <M.TextInput label="Email" {...register("email")} />
+      <M.Button type="submit">Submit</M.Button>
+    </form>
+  );
 }
-printImportant("ERROR", "This is a message");
 ```
+
+<!-- add MultiSelect controlled field -->
+
+```tsx {5,6,13}
+import * as M from "@mantine/core";
+import * as RHF from "react-hook-form";
+
+export default function Form() {
+  const { handleSubmit, register, control } = RHF.useForm();
+  const { field } = RHF.useController({ name: "favorite", control });
+
+  return (
+    <form onSubmit={handleSubmit((_) => console.log(_))}>
+      <M.TextInput label="First name" {...register("firstName")} />
+      <M.TextInput label="Last name" {...register("lastName")} />
+      <M.TextInput label="Email" {...register("email")} />
+      <M.MultiSelect data={["React", "Angular", "Vue", "Svelte"]} {...field} />
+      <M.Button type="submit">Submit</M.Button>
+    </form>
+  );
+}
+```
+
+<!-- add validation using Yup -->
+
+```tsx {3-14}
+import * as M from "@mantine/core";
+import * as RHF from "react-hook-form";
+import * as yup from "yup";
+
+const schema = yup
+  .object({
+    firstName: yup.string().required(),
+    lastName: yup.string(),
+    email: yup.string().email().required(),
+    favorite: yup.array(
+      yup.string().oneOf(["React", "Angular", "Vue", "Svelte"]).required()
+    ),
+  })
+  .required();
+
+export default function Form() {
+  const { handleSubmit, register, control } = RHF.useForm();
+  const { field } = RHF.useController({ name: "favorite", control });
+
+  return (
+    <form onSubmit={handleSubmit((_) => console.log(_))}>
+      <M.TextInput label="First name" {...register("firstName")} />
+      <M.TextInput label="Last name" {...register("lastName")} />
+      <M.TextInput label="Email" {...register("email")} />
+      <M.MultiSelect data={["React", "Angular", "Vue", "Svelte"]} {...field} />
+      <M.Button type="submit">Submit</M.Button>
+    </form>
+  );
+}
+```
+
+```tsx {3-9}
+import * as M from "@mantine/core";
+import * as RHF from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import schema from './schema';
+
+export default function Form() {
+  const { handleSubmit, register, control } = RHF.useForm({
+    resolver: yupResolver(schema),
+  });
+  const { field } = RHF.useController({ name: "favorite", control });
+
+  return (
+    <form onSubmit={handleSubmit((_) => console.log(_))}>
+      <M.TextInput label="First name" {...register("firstName")} />
+      <M.TextInput label="Last name" {...register("lastName")} />
+      <M.TextInput label="Email" {...register("email")} />
+      <M.MultiSelect data={["React", "Angular", "Vue", "Svelte"]} {...field} />
+      <M.Button type="submit">Submit</M.Button>
+    </form>
+  );
+}
+```
+
+```tsx {10,14-17}
+import * as M from "@mantine/core";
+import * as RHF from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import schema from './schema';
+
+export default function Form() {
+  const { handleSubmit, register, control, formState: { errors } } = RHF.useForm({
+    resolver: yupResolver(schema),
+  });
+  const { field } = RHF.useController({ name: "favorite", control });
+
+  return (
+    <form onSubmit={handleSubmit((_) => console.log(_))}>
+      <M.TextInput label="First name" {...register("firstName")} error={errors?.firstName?.message} />
+      <M.TextInput label="Last name" {...register("lastName")} error={errors?.lastName?.message} />
+      <M.TextInput label="Email" {...register("email")} error={errors?.email?.message} />
+      <M.MultiSelect data={["React", "Angular", "Vue", "Svelte"]} {...field} error={errors?.favorite?.message} />
+      <M.Button type="submit">Submit</M.Button>
+    </form>
+  );
+}
+```
+
+```tsx {5,8,10,15,20}{lines:true}
+import * as M from "@mantine/core";
+import * as RHF from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import schema from './schema';
+import * as API from "./api";
+
+export default function Form() {
+  const { handleSubmit, register, control, formState: { errors, isSubmitting } } = RHF.useForm({
+    resolver: yupResolver(schema),
+    defaultValues: API.getFromApi,
+  });
+  const { field } = RHF.useController({ name: "favorite", control });
+
+  return (
+    <form onSubmit={handleSubmit(API.sendToApi)}>
+      <M.TextInput label="First name" {...register("firstName")} error={errors?.firstName?.message} />
+      <M.TextInput label="Last name" {...register("lastName")} error={errors?.lastName?.message} />
+      <M.TextInput label="Email" {...register("email")} error={errors?.email?.message} />
+      <M.MultiSelect data={["React", "Angular", "Vue", "Svelte"]} {...field} error={errors?.favorite?.message} />
+      <M.Button type="submit" loading={isSubmitting}>Submit</M.Button>
+    </form>
+  );
+}
+```
+````
