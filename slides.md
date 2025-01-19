@@ -22,3 +22,6 @@ src: ./pages/2.example.md
 ---
 src: ./pages/3.problems.md
 ---
+---
+src: ./pages/4.better.md
+---
