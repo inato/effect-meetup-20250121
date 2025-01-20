@@ -31,3 +31,6 @@ src: ./pages/5.inatoform.md
 ---
 src: ./pages/6.array.md
 ---
+---
+src: ./pages/7.map.md
+---
