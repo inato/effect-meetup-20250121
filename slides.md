@@ -34,3 +34,6 @@ src: ./pages/6.array.md
 ---
 src: ./pages/7.map.md
 ---
+---
+src: ./pages/8.fields.md
+---
