@@ -39,7 +39,6 @@ function UserPreferences() {
     formState: { errors },
   } = RHF.useFormContext<Values>();
   const { field } = RHF.useController<Values>({ name: "favorite" });
-  field.value;
   const favoriteValue = watch("favorite");
   const showMessage = favoriteValue?.includes("Angular");
 
