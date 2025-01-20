@@ -29,5 +29,5 @@ src: ./pages/4.better.md
 src: ./pages/5.inatoform.md
 ---
 ---
-src: ./pages/6.datastructure.md
+src: ./pages/6.array.md
 ---
