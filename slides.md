@@ -12,6 +12,9 @@ mdc: true
 
 # Reinventing HTML forms with Effect
 
+<!--
+Je vais vous présenter un nouveau moyen qu'on a imaginé chez Inato pour simplifier l'écriture de formulaire HTML
+-->
 
 ---
 src: ./pages/1.intro.md
